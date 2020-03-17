@@ -1,2 +1,8 @@
 import numpy as np
-debug = 1
+import pyqtgraph as pg 
+import pyqtgraph.opengl as gl
+import pyqtgraph.Vector as Vector 
+
+# class QuadRotor_Viewer:
+#     def __init__(self):
+#         self.application = pg.QtGui.QApplication([])
