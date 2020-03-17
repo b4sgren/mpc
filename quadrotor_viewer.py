@@ -41,7 +41,7 @@ class QuadRotor_Viewer:
                            [0.0, -2.0, 0.0],
                            [0.5, -1.5, 0.0]])
         
-        scale = 1.0
+        scale = 2.5
         points = scale * points
 
         red = np.array([1.0, 0.0, 0.0, 1])
@@ -60,9 +60,10 @@ class QuadRotor_Viewer:
 
         return points.T, mesh_colors
     
-    def update(self):
+    def update(self, t, R):
         #translate and rotate points here
-        trans_pts = self.points.copy()
+        trans_pts = R @ self.points
+        trans_pts = trans_pts + t[:,None]
         mesh = self.pointsToMesh(trans_pts)
 
         if not self.plot_initialize:
@@ -73,13 +74,12 @@ class QuadRotor_Viewer:
         else:
             self.body.setMeshData(vertexes=mesh, vertexColors=self.mesh_colors)
         
-        # view_location = Vector(pn, pe, h) #in ENU frame
-        # self.window.opts['center'] = view_location 
-        # self.application.processEvents()
+        view_location = Vector(t[0], t[1], t[2]) #in ENU frame
+        self.window.opts['center'] = view_location 
+        self.application.processEvents()
     
     def pointsToMesh(self, points):
         points = points.T
-        print(points.shape)
         mesh = np.array([[points[0], points[1], points[2]],
                         [points[0], points[2], points[3]],
                         [points[4], points[5], points[6]],
@@ -94,5 +94,12 @@ class QuadRotor_Viewer:
 
 if __name__=="__main__":
     simulator = QuadRotor_Viewer()
-    simulator.update()
+    simulator.update(np.zeros(3), np.eye(3))
+    dt = .01
+    t = 0.0
+    while t < 2 * np.pi:
+        T = np.array([10 * np.sin(t), 10 * np.cos(t), 10 * t])
+        R = np.eye(3)
+        simulator.update(T, R)
+        t += dt
     pg.QtGui.QApplication.instance().exec_()
