@@ -3,6 +3,96 @@ import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 import pyqtgraph.Vector as Vector 
 
-# class QuadRotor_Viewer:
-#     def __init__(self):
-#         self.application = pg.QtGui.QApplication([])
+class QuadRotor_Viewer:
+    def __init__(self):
+        self.application = pg.QtGui.QApplication([])
+        self.window = gl.GLViewWidget()
+        self.window.setWindowTitle('Flight Simulator')
+        self.window.setGeometry(0, 0, 750, 750)
+        grid = gl.GLGridItem()
+        grid.scale(20, 20, 20)
+        self.window.addItem(grid) #Maybe do 3 orthogonal ones?
+        self.window.setCameraPosition(distance=200)
+        self.window.setBackgroundColor('k')
+        self.window.show()
+        self.window.raise_()
+        self.plot_initialize = False 
+        self.points, self.mesh_colors = self.getQuadPoints()
+    
+    def getQuadPoints(self):
+        points = np.array([[-1.0, 1.0, 0.0],
+                           [1.0, 1.0, 0.0],
+                           [1.0, -1.0, 0.0],
+                           [-1.0, -1.0, 0.0],
+                           [-1.0, 0.0, 0.0],
+                           [-1.5, 0.5, 0.0],
+                           [-2.0, 0.0, 0.0],
+                           [-1.5, -0.5, 0.0],
+                           [0.0, 1.0, 0.0],
+                           [0.5, 1.5, 0.0],
+                           [0.0, 2.0, 0.0],
+                           [-0.5, 1.5, 0.0],
+                           [1.0, 0.0, 0.0],
+                           [1.5, -0.5, 0.0],
+                           [2.0, 0.0, 0.0],
+                           [1.5, 0.5, 0.0],
+                           [0.0, -1.0, 0.0],
+                           [-0.5, -1.5, 0.0],
+                           [0.0, -2.0, 0.0],
+                           [0.5, -1.5, 0.0]])
+        
+        scale = 1.0
+        points = scale * points
+
+        red = np.array([1.0, 0.0, 0.0, 1])
+        blue = np.array([0.0, 0.0, 1.0, 1])
+        mesh_colors = np.empty((10, 3, 4), dtype=np.float32)
+        mesh_colors[0] = red 
+        mesh_colors[1] = red
+        mesh_colors[2] = blue 
+        mesh_colors[3] = blue 
+        mesh_colors[4] = blue 
+        mesh_colors[5] = blue 
+        mesh_colors[6] = blue 
+        mesh_colors[7] = blue 
+        mesh_colors[8] = blue 
+        mesh_colors[9] = blue 
+
+        return points.T, mesh_colors
+    
+    def update(self):
+        #translate and rotate points here
+        trans_pts = self.points.copy()
+        mesh = self.pointsToMesh(trans_pts)
+
+        if not self.plot_initialize:
+            self.body = gl.GLMeshItem(vertexes=mesh, vertexColors=self.mesh_colors,
+                                        drawEdges=True, smooth=False, computeNormals=False)
+            self.window.addItem(self.body)
+            self.plot_initialize = True
+        else:
+            self.body.setMeshData(vertexes=mesh, vertexColors=self.mesh_colors)
+        
+        # view_location = Vector(pn, pe, h) #in ENU frame
+        # self.window.opts['center'] = view_location 
+        # self.application.processEvents()
+    
+    def pointsToMesh(self, points):
+        points = points.T
+        print(points.shape)
+        mesh = np.array([[points[0], points[1], points[2]],
+                        [points[0], points[2], points[3]],
+                        [points[4], points[5], points[6]],
+                        [points[4], points[6], points[7]],
+                        [points[8], points[9], points[10]],
+                        [points[8], points[10], points[11]],
+                        [points[12], points[13], points[14]],
+                        [points[12], points[14], points[15]],
+                        [points[16], points[17], points[18]],
+                        [points[16], points[18], points[19]]])
+        return mesh
+
+if __name__=="__main__":
+    simulator = QuadRotor_Viewer()
+    simulator.update()
+    pg.QtGui.QApplication.instance().exec_()
