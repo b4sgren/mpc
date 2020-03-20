@@ -27,6 +27,7 @@ class Dynamics:
         theta = state[7]
         psi = state[8]
         R_i_from_b = Rotation.from_euler("ZYX", [psi, theta, phi]).as_dcm()
+        forces_dot = np.array([0, 0, 0, 0, 0, -u[0]/self.m, 0, 0, 0, u[1]/self.J[0,0], u[2]/self.J[1,1], u[3]/self.J[2,2]]) #I dont have l and c like michael does?
 
         v = state[3:6]
         w = state[9:]
@@ -43,6 +44,10 @@ class Dynamics:
         ang_dot = S @ w 
         w_dot = np.linalg.inv(self.J) @ np.cross(-w, (self.J @ w).T).T
 
-        #Above doesn't include the forces. Need to add those in
+        xdot[:3] = p_dot
+        xdot[3:6] = v_dot
+        xdot[6:9] = ang_dot 
+        xdot[9:] = w_dot 
+        xdot += forces_dot
 
         return xdot
