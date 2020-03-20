@@ -21,6 +21,8 @@ class Dynamics:
         k4 = self.derivatives(self.state + k3 * self.dt, u)
         self.state += (k1 + 2 * k2 + 2 * k3 + k4) * self.dt/6.0
 
+        return self.state
+
     def derivatives(self, state, u):
         # Dynamics come from https://scholarsarchive.byu.edu/cgi/viewcontent.cgi?article=2324&context=facpub
         xdot = np.zeros(12)
@@ -33,7 +35,7 @@ class Dynamics:
         v = state[3:6]
         w = state[9:]
         p_dot = R_i_from_b @ v
-        v_dot = np.cross(v, w) - R_i_from_b.T @ (self.g * self.e3) 
+        v_dot = np.cross(v, w) + R_i_from_b.T @ (self.g * self.e3) 
 
         sp = np.sin(phi)
         cp = np.cos(phi)
