@@ -9,7 +9,7 @@ class Dynamics:
         #State will use a quaternion in it
         self.state = np.array([params.pn0, params.pe0, params.pd0, params.vx0, params.vy0, params.vz0, params.phi0, params.theta0, params.psi0, params.p0, params.r0, params.psi0])
         self.e3 = np.array([0, 0, 1.0])
-        self.Cd = 0.3 #Not sure what this should be. Using this for now
+        # self.Cd = 0.2 
         self.g = 9.81
         self.m = params.mass 
         self.J = np.diag([params.Jx, params.Jy, params.Jz])
@@ -32,7 +32,7 @@ class Dynamics:
         v = state[3:6]
         w = state[9:]
         p_dot = R_i_from_b @ v
-        v_dot = -np.cross(w, v).T + R_i_from_b.T @ (self.g * self.e3)
+        v_dot = np.cross(v, w) + R_i_from_b.T @ (self.g * self.e3) #should it be cross(w, v)
 
         sp = np.sin(phi)
         cp = np.cos(phi)
@@ -42,7 +42,7 @@ class Dynamics:
                       [0.0, cp, -sp],
                       [0.0, sp / ct, cp / ct]])
         ang_dot = S @ w 
-        w_dot = np.linalg.inv(self.J) @ np.cross(-w, (self.J @ w).T).T
+        w_dot = np.linalg.inv(self.J) @ np.cross(-w, (self.J @ w))
 
         xdot[:3] = p_dot
         xdot[3:6] = v_dot
