@@ -22,17 +22,18 @@ class Dynamics:
         self.state += (k1 + 2 * k2 + 2 * k3 + k4) * self.dt/6.0
 
     def derivatives(self, state, u):
+        # Dynamics come from https://scholarsarchive.byu.edu/cgi/viewcontent.cgi?article=2324&context=facpub
         xdot = np.zeros(12)
         phi = state[6]
         theta = state[7]
         psi = state[8]
         R_i_from_b = Rotation.from_euler("ZYX", [psi, theta, phi]).as_dcm()
-        forces_dot = np.array([0, 0, 0, 0, 0, -u[0]/self.m, 0, 0, 0, u[1]/self.J[0,0], u[2]/self.J[1,1], u[3]/self.J[2,2]]) #I dont have l and c like michael does?
+        forces_dot = np.array([0, 0, 0, 0, 0, -u[0]/self.m, 0, 0, 0, u[1]/self.J[0,0], u[2]/self.J[1,1], u[3]/self.J[2,2]]) 
 
         v = state[3:6]
         w = state[9:]
         p_dot = R_i_from_b @ v
-        v_dot = np.cross(v, w) + R_i_from_b.T @ (self.g * self.e3) #should it be cross(w, v)
+        v_dot = np.cross(v, w) - R_i_from_b.T @ (self.g * self.e3) 
 
         sp = np.sin(phi)
         cp = np.cos(phi)
