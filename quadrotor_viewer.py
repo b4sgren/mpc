@@ -65,6 +65,10 @@ class QuadRotor_Viewer:
         #translate and rotate points here
         trans_pts = R @ self.points
         trans_pts = trans_pts + t[:,None]
+        
+        R2 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, -1]])
+        trans_pts = R2 @ trans_pts
+
         mesh = self.pointsToMesh(trans_pts)
 
         if not self.plot_initialize:
@@ -75,7 +79,7 @@ class QuadRotor_Viewer:
         else:
             self.body.setMeshData(vertexes=mesh, vertexColors=self.mesh_colors)
         
-        view_location = Vector(t[0], t[1], t[2]) #in ENU frame
+        view_location = Vector(t[1], t[0], -t[2]) #in ENU frame
         self.window.opts['center'] = view_location 
         self.application.processEvents()
     

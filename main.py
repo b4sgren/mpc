@@ -13,7 +13,7 @@ if __name__=="__main__":
     while(t0 < params.tf):
         u = np.zeros(4) #Order is F, Tx, Ty, Tz
         u[0] = 7.848 #Equilibrium force
-        u[2] = 1e-3
+        u[3] = -1e-3
         state = dynamics.updateState(u)
 
         t = state[:3]
