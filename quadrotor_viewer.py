@@ -46,13 +46,14 @@ class QuadRotor_Viewer:
 
         red = np.array([1.0, 0.0, 0.0, 1])
         blue = np.array([0.0, 0.0, 1.0, 1])
+        green = np.array([0.0, 1.0, 0.0, 1.0])
         mesh_colors = np.empty((10, 3, 4), dtype=np.float32)
         mesh_colors[0] = red 
         mesh_colors[1] = red
         mesh_colors[2] = blue 
         mesh_colors[3] = blue 
-        mesh_colors[4] = blue 
-        mesh_colors[5] = blue 
+        mesh_colors[4] = green 
+        mesh_colors[5] = green 
         mesh_colors[6] = blue 
         mesh_colors[7] = blue 
         mesh_colors[8] = blue 
@@ -60,7 +61,7 @@ class QuadRotor_Viewer:
 
         return points.T, mesh_colors
     
-    def update(self, t, R):
+    def update(self, t, R): #Remember that viewer operates in a ENU frame. May need to adjust this a little bit if it doesn't do what I want
         #translate and rotate points here
         trans_pts = R @ self.points
         trans_pts = trans_pts + t[:,None]
@@ -93,13 +94,15 @@ class QuadRotor_Viewer:
         return mesh
 
 if __name__=="__main__":
+    from scipy.spatial.transform import Rotation
     simulator = QuadRotor_Viewer()
     simulator.update(np.zeros(3), np.eye(3))
     dt = .01
     t = 0.0
     while t < 2 * np.pi:
+        ang = t
         T = np.array([10 * np.sin(t), 10 * np.cos(t), 10 * t])
-        R = np.eye(3)
+        R = Rotation.from_rotvec(np.array([t, 0, 0])).as_dcm()
         simulator.update(T, R)
         t += dt
     pg.QtGui.QApplication.instance().exec_()
