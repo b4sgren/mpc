@@ -1,7 +1,7 @@
 import numpy as np
 import params 
 from scipy.spatial.transform import Rotation
-from tools import Euler2Rotation
+#from tools import Euler2Rotation
 
 class Dynamics:
     def __init__(self, Ts):
@@ -30,7 +30,7 @@ class Dynamics:
         theta = state[7]
         psi = state[8]
         R_i_from_b = Rotation.from_euler("ZYX", [psi, theta, phi]).as_dcm()
-        R = Euler2Rotation(phi, theta, psi)
+        # R = Euler2Rotation(phi, theta, psi)
         forces = np.array([0, 0, 0, 0, 0, -u[0]/self.m, 0, 0, 0, u[1]/self.J[0,0], u[2]/self.J[1,1], u[3]/self.J[2,2]]) 
 
         v = state[3:6]

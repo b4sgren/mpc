@@ -3,7 +3,7 @@ import params
 from dynamics import Dynamics
 from quadrotor_viewer import QuadRotor_Viewer
 from scipy.spatial.transform import Rotation
-from tools import Euler2Rotation
+#from tools import Euler2Rotation
 
 if __name__=="__main__":
     dynamics = Dynamics(params.dt)
@@ -14,7 +14,7 @@ if __name__=="__main__":
     while(t0 < params.tf):
         u = np.zeros(4) #Order is F, Tx, Ty, Tz
         u[0] = 7.848 #Equilibrium force
-        u[3] = 1e-3
+        u[1] = 1e-3
         state = dynamics.updateState(u)
 
         t = state[:3]
