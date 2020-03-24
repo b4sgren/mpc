@@ -52,21 +52,22 @@ class QuadRotor_Viewer:
         mesh_colors[1] = red
         mesh_colors[2] = blue 
         mesh_colors[3] = blue 
-        mesh_colors[4] = green 
-        mesh_colors[5] = green 
-        mesh_colors[6] = blue 
-        mesh_colors[7] = blue 
+        mesh_colors[4] = blue 
+        mesh_colors[5] = blue 
+        mesh_colors[6] = green 
+        mesh_colors[7] = green 
         mesh_colors[8] = blue 
         mesh_colors[9] = blue 
 
         return points.T, mesh_colors
     
-    def update(self, t, R): #Remember that viewer operates in a ENU frame. May need to adjust this a little bit if it doesn't do what I want
+    def update(self, t, R): #Remember that viewer operates in a SEU frame. May need to adjust this a little bit if it doesn't do what I want
         #translate and rotate points here
         trans_pts = R @ self.points
         trans_pts = trans_pts + t[:,None]
         
-        R2 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, -1]])
+        # R2 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, -1]])
+        R2 = np.array([[-1.0, 0.0, 0], [0, 1, 0], [0, 0, -1]])
         trans_pts = R2 @ trans_pts
 
         mesh = self.pointsToMesh(trans_pts)
@@ -80,7 +81,7 @@ class QuadRotor_Viewer:
             self.body.setMeshData(vertexes=mesh, vertexColors=self.mesh_colors)
         
         view_location = Vector(t[1], t[0], -t[2]) #in ENU frame
-        self.window.opts['center'] = view_location 
+        # self.window.opts['center'] = view_location 
         self.application.processEvents()
     
     def pointsToMesh(self, points):

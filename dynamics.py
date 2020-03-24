@@ -1,12 +1,12 @@
 import numpy as np
 import params 
 from scipy.spatial.transform import Rotation
+from tools import Euler2Rotation
 
 class Dynamics:
     def __init__(self, Ts):
         self.dt = Ts
 
-        #State will use a quaternion in it
         self.state = np.array([params.pn0, params.pe0, params.pd0, params.vx0, params.vy0, params.vz0, params.phi0, params.theta0, params.psi0, params.p0, params.r0, params.psi0])
         self.e3 = np.array([0, 0, 1.0])
         # self.Cd = 0.2 
@@ -30,7 +30,8 @@ class Dynamics:
         theta = state[7]
         psi = state[8]
         R_i_from_b = Rotation.from_euler("ZYX", [psi, theta, phi]).as_dcm()
-        forces_dot = np.array([0, 0, 0, 0, 0, -u[0]/self.m, 0, 0, 0, u[1]/self.J[0,0], u[2]/self.J[1,1], u[3]/self.J[2,2]]) 
+        R = Euler2Rotation(phi, theta, psi)
+        forces = np.array([0, 0, 0, 0, 0, -u[0]/self.m, 0, 0, 0, u[1]/self.J[0,0], u[2]/self.J[1,1], u[3]/self.J[2,2]]) 
 
         v = state[3:6]
         w = state[9:]
@@ -51,6 +52,6 @@ class Dynamics:
         xdot[3:6] = v_dot
         xdot[6:9] = ang_dot 
         xdot[9:] = w_dot 
-        xdot += forces_dot
+        xdot += forces
 
         return xdot
