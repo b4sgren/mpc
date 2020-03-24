@@ -14,13 +14,12 @@ if __name__=="__main__":
     while(t0 < params.tf):
         u = np.zeros(4) #Order is F, Tx, Ty, Tz
         u[0] = 7.848 #Equilibrium force
-        u[2] = 1e-3
+        u[1] = 1e-3
         state = dynamics.updateState(u)
 
         t = state[:3]
         ang = state[6:9]
-        # R_b_from_i = Rotation.from_euler('ZYX', [ang[2], ang[1], ang[0]]).as_dcm()
-        R_b_from_i = Euler2Rotation(ang[0], ang[1], ang[2])
+        R_b_from_i = Rotation.from_euler('ZYX', [ang[2], ang[1], ang[0]]).as_dcm()
         viewer.update(t, R_b_from_i)
 
         t0 += params.dt
