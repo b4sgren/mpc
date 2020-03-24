@@ -61,13 +61,13 @@ class QuadRotor_Viewer:
 
         return points.T, mesh_colors
     
-    def update(self, t, R): #Remember that viewer operates in a SEU frame. May need to adjust this a little bit if it doesn't do what I want
+    def update(self, t, R): #Remember that viewer operates in a ENU frame. May need to adjust this a little bit if it doesn't do what I want
         #translate and rotate points here
         trans_pts = R @ self.points
         trans_pts = trans_pts + t[:,None]
         
-        # R2 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, -1]])
-        R2 = np.array([[-1.0, 0.0, 0], [0, 1, 0], [0, 0, -1]])
+        R2 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, -1]]) #This converts to ENU. The result is the same as using the one to SEU
+        # R2 = np.array([[-1.0, 0.0, 0], [0, 1, 0], [0, 0, -1]])
         trans_pts = R2 @ trans_pts
 
         mesh = self.pointsToMesh(trans_pts)
