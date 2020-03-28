@@ -1,6 +1,7 @@
 import numpy as np
 import params 
 from scipy.spatial.transform import Rotation
+import scipy.signal as ss
 #from tools import Euler2Rotation
 
 def skew(v):
@@ -105,7 +106,15 @@ class Dynamics:
         dwd_du[:,1:] = np.diag([1/self.J[0,0], 1/self.J[1,1], 1/self.J[2,2]])        
         B[9:] = dwd_du 
 
-        return A, B
+        C = np.eye(12) #Full state Feedback
+        D = np.zeros((12,4))
+
+        sysd = ss.cont2discrete((A, B, C, D), self.dt) #Get the discrete time system
+        Ad = sysd[0]
+        Bd = sysd[1]
+
+        # return A, B
+        return Ad, Bd 
 
 if __name__=="__main__":
     x_eq = np.zeros((12))
