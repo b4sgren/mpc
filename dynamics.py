@@ -92,8 +92,8 @@ class Dynamics:
         #                     [cp/ct * w[1] - sp/ct * w[2], tan_t/ct * (sp * w[1] + cp * w[2]), 0]])
         A[6:9, 9:] = dangd_dw
 
-        dwd_dw = np.cross(-np.eye(3), self.J @ w) + np.cross(-w, J) #This is the analytical derivative. My derivation from quadrotor dynamics doesn't match
-        A[9:, 9:] = dwd_dw 
+        dwd_dw = np.cross(-np.eye(3), self.J @ w) + np.cross(-w, self.J) #This is the analytical derivative. My derivation from quadrotor dynamics doesn't match
+        A[9:, 9:] = dwd_dw.T #Not sure if the .T is correct but otherwise I have non-zero values where zeros should be and zeros where values should be
 
         B = np.zeros((12, 4))
 
@@ -102,7 +102,25 @@ class Dynamics:
         B[3:6] = dvd_du 
 
         dwd_du = np.zeros((3,4))
-        dwd_du = np.diag([1/self.J[0,0], 1/self.J[1,1], 1/self.J[2,2]])        
+        dwd_du[:,1:] = np.diag([1/self.J[0,0], 1/self.J[1,1], 1/self.J[2,2]])        
         B[9:] = dwd_du 
 
         return A, B
+
+if __name__=="__main__":
+    x_eq = np.zeros((12))
+    quad = Dynamics(params.dt)
+    A, B = quad.get_SS(x_eq) #About the equilibrium all of then A is correct
+
+    J = quad.J 
+    Jx = J[0,0]
+    Jy = J[1,1]
+    Jz = J[2,2]
+    w = x_eq[-3:]
+    temp = np.array([[0, (Jy - Jz)/Jx * w[2], (Jy - Jz)/Jx * w[1]], [(Jz - Jx)/Jy * w[2], 0, (Jz - Jx)/Jy * w[0]], [(Jx - Jy)/Jz * w[2], (Jx - Jy)/Jz * w[0], 0]])
+
+    x = np.array([0, 0, 0, 1.0, -1.0, 0.1, np.deg2rad(5.0), np.deg2rad(-5.0), np.deg2rad(45.0), 0.01, -0.01, 0.0])
+    A, B = quad.get_SS(x)
+    w = x[-3:]
+    temp = np.array([[0, (Jy - Jz)/Jx * w[2], (Jy - Jz)/Jx * w[1]], [(Jz - Jx)/Jy * w[2], 0, (Jz - Jx)/Jy * w[0]], [(Jx - Jy)/Jz * w[2], (Jx - Jy)/Jz * w[0], 0]])
+    debug = 1
