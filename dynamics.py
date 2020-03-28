@@ -92,8 +92,9 @@ class Dynamics:
         #                     [cp/ct * w[1] - sp/ct * w[2], tan_t/ct * (sp * w[1] + cp * w[2]), 0]])
         A[6:9, 9:] = dangd_dw
 
-        dwd_dw = np.cross(-np.eye(3), self.J @ w) + np.cross(-w, self.J) #This is the analytical derivative. My derivation from quadrotor dynamics doesn't match
-        A[9:, 9:] = dwd_dw.T #Not sure if the .T is correct but otherwise I have non-zero values where zeros should be and zeros where values should be
+        # dwd_dw = np.cross(-np.eye(3), self.J @ w) + np.cross(-w, self.J) #This is the analytical derivative. My derivation from quadrotor dynamics doesn't match
+        dwd_dw = np.linalg.inv(self.J) @ (-skew(self.J@w) @ (-np.eye(3)) + skew(-w) @ self.J)
+        A[9:, 9:] = dwd_dw 
 
         B = np.zeros((12, 4))
 
