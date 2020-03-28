@@ -3,6 +3,9 @@ import params
 from scipy.spatial.transform import Rotation
 #from tools import Euler2Rotation
 
+def skew(v):
+    return np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+
 class Dynamics:
     def __init__(self, Ts):
         self.dt = Ts
@@ -55,3 +58,51 @@ class Dynamics:
         xdot += forces
 
         return xdot
+    
+    def get_SS(self, state): #This will be used to get the SS model about equilibrium and my current state
+        v = state[3:6]
+        phi = state[6]
+        theta = state[7]
+        psi = state[8]
+        w = state[9:]
+
+        ct = np.cos(theta)
+        st = np.sin(theta)
+        cp = np.cos(phi)
+        sp = np.sin(phi)
+
+        A = np.zeros((12, 12))
+
+        dpd_dv = Rotation.from_euler('ZYX', [psi, theta, phi]).as_dcm()
+        A[:3, 3:6] = dpd_dv # There is technically another term b/c pd depends on phi, theta, psi in R. Going to ignore it and see how it changes things
+
+        dvd_dv = -skew(w)
+        dvd_dw = skew(v)
+        dvd_dang = np.array([[0, -self.g * ct, 0], [self.g * ct * cp, -self.g * st * sp, 0], [-self.g * ct * sp, -self.g * st * cp, 0]])
+        A[3:6, 3:6] = dvd_dv 
+        A[3:6, 6:9] = dvd_dang 
+        A[3:6, 9:] = dvd_dw
+
+        dangd_dw = np.array([[1.0, sp * st / ct, cp * st / ct],
+                      [0.0, cp, -sp],
+                      [0.0, sp / ct, cp / ct]])
+        # tan_t = st / ct
+        # dangd_dang = np.array([[cp * tan_t * w[1] - sp * tan_t * w[2], (sp * w[1] + cp * w[2])/(ct**2), 0], #Going to ignore this term for now and see if it works. It should at least around eq
+        #                     [-sp * w[1] - cp * w[2], 0, 0],
+        #                     [cp/ct * w[1] - sp/ct * w[2], tan_t/ct * (sp * w[1] + cp * w[2]), 0]])
+        A[6:9, 9:] = dangd_dw
+
+        dwd_dw = np.cross(-np.eye(3), self.J @ w) + np.cross(-w, J) #This is the analytical derivative. My derivation from quadrotor dynamics doesn't match
+        A[9:, 9:] = dwd_dw 
+
+        B = np.zeros((12, 4))
+
+        dvd_du = np.zeros((3,4))
+        dvd_du[2,0] = -1/self.m
+        B[3:6] = dvd_du 
+
+        dwd_du = np.zeros((3,4))
+        dwd_du = np.diag([1/self.J[0,0], 1/self.J[1,1], 1/self.J[2,2]])        
+        B[9:] = dwd_du 
+
+        return A, B

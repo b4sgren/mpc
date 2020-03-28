@@ -10,11 +10,13 @@ if __name__=="__main__":
     viewer = QuadRotor_Viewer()
 
     t0 = params.t0
+    F_eq = 7.848 
+    T_eq = 0.0
 
     while(t0 < params.tf):
         u = np.zeros(4) #Order is F, Tx, Ty, Tz
-        u[0] = 7.848 #Equilibrium force
-        u[1] = 1e-3
+        u[0] = F_eq
+        u[1] = T_eq
         state = dynamics.updateState(u)
 
         t = state[:3]
