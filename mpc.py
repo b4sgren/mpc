@@ -1,5 +1,6 @@
 import numpy as np 
 import cvxpy as cp 
+import params
 
 class MPC:
     def __init__(self, A, B, u_max, u_min, T=10): #Note that Q is diagonal and should only have values for states that I care to track (position and maybe heading)
@@ -22,15 +23,22 @@ class MPC:
         constr = []
         phi_theta_max = np.array([np.pi/4, np.pi/4])
         for t in range(self.T):
-            cost += cp.quad_form(xr[:,t+1] - x[:,t+1], self.Q) + cp.quad_form(u[:,t], self.R)
+            cost += cp.quad_form(xr - x[:,t+1], self.Q) + cp.quad_form(u[:,t], self.R) #TODO: Update for different xr's in trajectory
             constr += [x[:,t+1] == self.A @ x[:,t] + self.B @ u[:,t]] 
             constr += [x[6:8, t+1] <= phi_theta_max, x[6:8, t+1] >= -phi_theta_max] #Max constraint on roll and pitch angles
             constr += [u[:,t] <= self.u_max , u[:,t] >= self.u_min] #Constraint on the inputs
         constr += [x[:,0] == x0] # First state must be what is passed in
 
         problem = cp.Problem(cp.Minimize(cost), constr)
-        problem.solve() #Will need to check if the soln is optimal
-        # problem.solve(solver=cp.ECOS)
+        # problem.solve() #Will need to check if the soln is optimal
+        problem.solve(solver=cp.ECOS)
+
+        if problem.status == cp.OPTIMAL:
+            print(u.value[:,0])
+            return u.value[:,0]
+        else:
+            print("Not optimal")
+            return np.array([params.mass * 9.81, 0.0, 0.0, 0.0]) #Equilbrium
 
 if __name__=="__main__":
     debug = 1

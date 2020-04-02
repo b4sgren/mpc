@@ -3,21 +3,30 @@ import params
 from dynamics import Dynamics
 from quadrotor_viewer import QuadRotor_Viewer
 from scipy.spatial.transform import Rotation
+from mpc import MPC
 #from tools import Euler2Rotation
 
 if __name__=="__main__":
     dynamics = Dynamics(params.dt)
     viewer = QuadRotor_Viewer()
+    A, B = dynamics.get_SS(dynamics.state)
+
+    controller =  MPC(A, B, params.u_max, params.u_min)
 
     t0 = params.t0
     F_eq = 7.848 
     T_eq = 0.0
+    u_eq = np.array([F_eq, 0.0, 0.0, 0.0])
+
+    xr = np.array([10.0, 0.0, -10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    state = dynamics.state
 
     while(t0 < params.tf):
-        u = np.zeros(4) #Order is F, Tx, Ty, Tz
-        u[0] = F_eq
-        u[1] = T_eq
-        state = dynamics.updateState(u)
+        u = controller.calculateControl(xr, state)
+        # u = np.zeros(4) #Order is F, Tx, Ty, Tz
+        # u[0] = F_eq
+        # u[1] = T_eq
+        state = dynamics.updateState(u + u_eq)
 
         t = state[:3]
         if t0 > 2:
