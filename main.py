@@ -4,11 +4,13 @@ from dynamics import Dynamics
 from quadrotor_viewer import QuadRotor_Viewer
 from scipy.spatial.transform import Rotation
 from mpc import MPC
+from data_viewer import data_viewer
 # from tools import Euler2Rotation
 
 if __name__=="__main__":
     dynamics = Dynamics(params.dt)
     viewer = QuadRotor_Viewer()
+    data_view = data_viewer()
     A, B = dynamics.get_SS(dynamics.state)
 
     controller =  MPC(A, B, params.u_max, params.u_min)
@@ -37,6 +39,7 @@ if __name__=="__main__":
         ang = state[6:9]
         R_b_from_i = Rotation.from_euler('ZYX', [ang[2], ang[1], ang[0]]).as_dcm()
         viewer.update(t, R_b_from_i)
+        data_view.update(state, params.t_plot)
 
     
     print('Finished')
