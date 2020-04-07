@@ -1,6 +1,7 @@
 import numpy as np 
 import cvxpy as cp 
 import params
+import pyoptsparse #Will use SNOPT for the non-linear MPC
 
 '''
 TODO:
@@ -47,6 +48,24 @@ class MPC:
             print("Not optimal")
             return np.array([params.mass * 9.81, 0.0, 0.0, 0.0]) #Equilbrium
 
-# class NMPC:
-    # def __init__(self):
-        # debug = 1
+class NMPC:
+    def __init__(self, u_max, u_min, T=10):
+        self.T = T 
+        self.u_max = u_max 
+        self.u_min = u_min 
+        self.Q = np.diag([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])
+        self.R = np.diag([0.1, 0.1, 0.1, 0.1])
+        self.u_eq = np.array([params.mass * 9.81, 0.0, 0.0, 0.0]) #This will always be my starting guess
+    
+    def __call__(xdict):
+        debug = 1
+    
+    def equalityConstraints(self):
+        debug = 1
+    
+    def inequalityConstraints(self):
+        debug = 1
+
+    def calculateControl(self, xr, x0):
+        self.x_ref = xr
+        debug = 1
