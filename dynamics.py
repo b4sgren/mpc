@@ -15,7 +15,7 @@ class Dynamics:
 
         self.state = np.array([params.pn0, params.pe0, params.pd0, params.vx0, params.vy0, params.vz0, params.phi0, params.theta0, params.psi0, params.p0, params.r0, params.psi0])
         self.e3 = np.array([0, 0, 1.0])
-        # self.Cd = 0.2 
+        # self.Cd = 0.2 #Drag coefficient
         self.g = 9.81
         self.m = params.mass 
         self.J = np.diag([params.Jx, params.Jy, params.Jz])

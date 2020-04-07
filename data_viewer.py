@@ -8,13 +8,13 @@ class data_viewer:
                                time_window=time_window_length)  # plot last time_window seconds of data
         # set up the plot window
         # define first row
-        pn_plots = PlotboxArgs(plots=['pn'],
+        pn_plots = PlotboxArgs(plots=['pn', 'pn_c'],
                                labels={'left': 'pn(m)', 'bottom': 'Time (s)'},
                                time_window=time_window_length)
-        pe_plots = PlotboxArgs(plots=['pe'],
+        pe_plots = PlotboxArgs(plots=['pe', 'pe_c'],
                                labels={'left': 'pe(m)', 'bottom': 'Time (s)'},
                                time_window=time_window_length)
-        h_plots = PlotboxArgs(plots=['h'],
+        h_plots = PlotboxArgs(plots=['h', 'h_c'],
                               labels={'left': 'h(m)', 'bottom': 'Time (s)'},
                               time_window=time_window_length)
         first_row = [pn_plots, pe_plots, h_plots]
@@ -33,7 +33,7 @@ class data_viewer:
                                   labels={'left': 'theta(deg)', 'bottom': 'Time (s)'},
                                   rad2deg=True,
                                   time_window=time_window_length)
-        psi_plots = PlotboxArgs(plots=['psi'],
+        psi_plots = PlotboxArgs(plots=['psi', 'psi_c'],
                                 labels={'left': 'psi(deg)', 'bottom': 'Time (s)'},
                                 rad2deg=True,
                                 time_window=time_window_length)
@@ -63,14 +63,17 @@ class data_viewer:
         # Define and label vectors for more convenient/natural data input
         self.plotter.define_input_vector('true_state', ['pn', 'pe', 'h', 'u', 'v', 'w', 'phi', 'theta', 'psi',
                                                         'p', 'q', 'r'])
+        self.plotter.define_input_vector('commanded_state', ['pn_c', 'pe_c', 'h_c', 'psi_c'])
         # plot timer
         self.time = 0.
 
-    def update(self, true_state, ts):
+    def update(self, true_state, commanded_state, ts):
         ## Add the state data in vectors
         # the order has to match the order in lines 72-76
         true_state_list = true_state.tolist()
+        commanded_state_list = commanded_state.tolist()
         self.plotter.add_vector_measurement('true_state', true_state_list, self.time)
+        self.plotter.add_vector_measurement('commanded_state', commanded_state_list, self.time)
 
         # Update and display the plot
         self.plotter.update_plots()
