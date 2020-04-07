@@ -18,7 +18,7 @@ if __name__=="__main__":
     T_eq = 0.0
     u_eq = np.array([F_eq, T_eq, T_eq, T_eq])
 
-    xr = np.array([10.0, 0.0, -10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    xr = np.array([10.0, 0.0, -10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) * 0.0
     state = dynamics.state
 
     while(t0 < params.tf):
