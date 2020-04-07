@@ -2,7 +2,9 @@ import numpy as np
 import params 
 from scipy.spatial.transform import Rotation
 import scipy.signal as ss
-#from tools import Euler2Rotation
+from tools import Euler2Rotation
+
+#Need to perturb some of the parameters such as mass, J
 
 def skew(v):
     return np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
@@ -33,24 +35,37 @@ class Dynamics:
         phi = state[6]
         theta = state[7]
         psi = state[8]
+        sp = np.sin(phi)
+        cp = np.cos(phi)
+        st = np.sin(theta)
+        ct = np.cos(theta)
+        cpsi = np.cos(psi)
+        spsi = np.sin(psi)
+
         R_i_from_b = Rotation.from_euler("ZYX", [psi, theta, phi]).as_dcm()
-        # R = Euler2Rotation(phi, theta, psi)
+        R = Euler2Rotation(phi, theta, psi)
         forces = np.array([0, 0, 0, 0, 0, -u[0]/self.m, 0, 0, 0, u[1]/self.J[0,0], u[2]/self.J[1,1], u[3]/self.J[2,2]]) 
 
         v = state[3:6]
         w = state[9:]
         p_dot = R_i_from_b @ v
-        v_dot = np.cross(v, w) + R_i_from_b.T @ (self.g * self.e3) 
+        v_dot = np.cross(v, w) + R_i_from_b.T @ (self.g * self.e3)  #Add a drag term? See mats code
+        # ud = w[2] * v[1] - w[1] * v[2] - self.g * np.sin(theta)
+        # vd = w[0] * v[2] - w[2] * v[0] + self.g * np.cos(theta) * np.sin(phi)
+        # wd = w[1] * v[0] - w[0] * v[1] + self.g * np.cos(theta) * np.cos(phi) - u[0]/self.m
+        # temp = np.array([ud, vd, wd])
 
-        sp = np.sin(phi)
-        cp = np.cos(phi)
-        st = np.sin(theta)
-        ct = np.cos(theta)
+
         S = np.array([[1.0, sp * st / ct, cp * st / ct],
                       [0.0, cp, -sp],
                       [0.0, sp / ct, cp / ct]])
         ang_dot = S @ w 
         w_dot = np.linalg.inv(self.J) @ np.cross(-w, (self.J @ w))
+        Jx, Jy, Jz = self.J[0,0], self.J[1,1], self.J[2,2]
+        # pd = (Jy - Jz)/Jx * w[1]*w[2] + u[1]/Jx 
+        # qd = (Jz - Jx)/Jy * w[0] * w[2] + u[2]/Jy 
+        # rd = (Jx - Jy)/Jz * w[0] * w[1] + u[3]/Jz
+        # temp = np.array([pd, qd, rd])
 
         xdot[:3] = p_dot
         xdot[3:6] = v_dot
@@ -60,7 +75,7 @@ class Dynamics:
 
         return xdot
     
-    def get_SS(self, state): #This will be used to get the SS model about equilibrium and my current state
+    def get_SS(self, state): #This appears to match what Mat has. Need to run his matlab code to be sure
         v = state[3:6]
         phi = state[6]
         theta = state[7]
@@ -75,26 +90,23 @@ class Dynamics:
         A = np.zeros((12, 12))
 
         dpd_dv = Rotation.from_euler('ZYX', [psi, theta, phi]).as_dcm()
-        A[:3, 3:6] = dpd_dv # There is technically another term b/c pd depends on phi, theta, psi in R. Going to ignore it and see how it changes things
+        A[:3, 3:6] = dpd_dv 
 
         dvd_dv = -skew(w)
         dvd_dw = skew(v)
         dvd_dang = np.array([[0, -self.g * ct, 0], [self.g * ct * cp, -self.g * st * sp, 0], [-self.g * ct * sp, -self.g * st * cp, 0]])
-        A[3:6, 3:6] = dvd_dv 
+        # A[3:6, 3:6] = dvd_dv  #Mat isn't using this. Will try adding it later
         A[3:6, 6:9] = dvd_dang 
-        A[3:6, 9:] = dvd_dw
+        # A[3:6, 9:] = dvd_dw #Mat isn't using this. Will try adding it later
 
         dangd_dw = np.array([[1.0, sp * st / ct, cp * st / ct],
                       [0.0, cp, -sp],
                       [0.0, sp / ct, cp / ct]])
-        # tan_t = st / ct
-        # dangd_dang = np.array([[cp * tan_t * w[1] - sp * tan_t * w[2], (sp * w[1] + cp * w[2])/(ct**2), 0], #Going to ignore this term for now and see if it works. It should at least around eq
-        #                     [-sp * w[1] - cp * w[2], 0, 0],
-        #                     [cp/ct * w[1] - sp/ct * w[2], tan_t/ct * (sp * w[1] + cp * w[2]), 0]])
-        A[6:9, 9:] = dangd_dw
+        # A[6:9, 9:] = dangd_dw
+        A[6:9, 9:] = np.eye(3) #Mat is doing this not the line above. Will try switching it later
 
         dwd_dw = np.linalg.inv(self.J) @ (-skew(self.J@w) @ (-np.eye(3)) + skew(-w) @ self.J)
-        A[9:, 9:] = dwd_dw 
+        # A[9:, 9:] = dwd_dw #Mat isn't using this. Will try adding it later
 
         B = np.zeros((12, 4))
 

@@ -4,7 +4,7 @@ from dynamics import Dynamics
 from quadrotor_viewer import QuadRotor_Viewer
 from scipy.spatial.transform import Rotation
 from mpc import MPC
-#from tools import Euler2Rotation
+# from tools import Euler2Rotation
 
 if __name__=="__main__":
     dynamics = Dynamics(params.dt)
@@ -16,25 +16,27 @@ if __name__=="__main__":
     t0 = params.t0
     F_eq = 7.848 
     T_eq = 0.0
-    u_eq = np.array([F_eq, 0.0, 0.0, 0.0])
+    u_eq = np.array([F_eq, T_eq, T_eq, T_eq])
 
     xr = np.array([10.0, 0.0, -10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     state = dynamics.state
 
     while(t0 < params.tf):
-        u = controller.calculateControl(xr, state)
-        # u = np.zeros(4) #Order is F, Tx, Ty, Tz
-        # u[0] = F_eq
-        # u[1] = T_eq
-        state = dynamics.updateState(u + u_eq)
+        tp = t0 + params.t_plot
+        while t0 < tp:
+            u = controller.calculateControl(xr, state)
+            # u = np.zeros(4) #Order is F, Tx, Ty, Tz
+            # u[0] = F_eq
+            # u[1] = T_eq
+            state = dynamics.updateState(u + u_eq)
+            t0 += params.dt
 
         t = state[:3]
-        if t0 > 2:
-            t[2] = 10.0
+        # if t0 > 2:
+            # t[2] = 10.0
         ang = state[6:9]
         R_b_from_i = Rotation.from_euler('ZYX', [ang[2], ang[1], ang[0]]).as_dcm()
         viewer.update(t, R_b_from_i)
 
-        t0 += params.dt
     
     print('Finished')

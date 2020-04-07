@@ -17,10 +17,14 @@ phi0 = 0.0
 theta0 = 0.0
 psi0 = 0.0
 
-Jx = 0.0224
-Jy = 0.0224
-Jz = 0.0436
-mass = 0.8
+mc = 2.0
+mp = 0.25
+r = .1
+d = .3
+mass = md + 4 * mp 
+Jx = 2.0/5 * mc * r**2 + 2 * d**2 * mp 
+Jy = 2.0/5 * mc * r**2 + 2 * d**2 * mp 
+Jz = 2.0/5 * mc * r**2 + 4 * d**2 * mp 
 
 u_max = np.array([2 * 9.81 * mass, 0.1, 0.1, 0.1])
 u_min = np.array([0.0, -0.1, -0.1, -0.1])

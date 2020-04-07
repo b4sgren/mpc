@@ -46,4 +46,9 @@ def Euler2Rotation(phi, theta, psi):
     q = Euler2Quaternion(phi, theta, psi)
     R = Quaternion2Rotation(q)
 
+    # Rx = np.array([[1.0, 0.0, 0.0], [0.0, np.cos(phi), np.sin(phi)], [0.0, -np.sin(phi), np.cos(phi)]])
+    # Ry = np.array([[np.cos(theta), 0.0, -np.sin(theta)], [0.0, 1.0, 0.0], [np.sin(theta), 0.0, np.cos(theta)]])
+    # Rz = np.array([[np.cos(psi), np.sin(psi), 0.0], [-np.sin(psi), np.cos(psi), 0.0], [0.0, 0.0, 1.0]])
+    # temp = (Rx @ Ry @ Rz).T
+
     return R
