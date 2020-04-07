@@ -34,12 +34,12 @@ if __name__=="__main__":
             t0 += params.dt
 
         t = state[:3]
-        # if t0 > 2:
-            # t[2] = 10.0
+        # if t0 > 5:
+            # xr[2] = -10
         ang = state[6:9]
         R_b_from_i = Rotation.from_euler('ZYX', [ang[2], ang[1], ang[0]]).as_dcm()
         viewer.update(t, R_b_from_i)
-        data_view.update(state, params.t_plot)
+        data_view.update(state, params.t_plot) #I should add the commanded states too (x, y, z, psi)
 
     
     print('Finished')
