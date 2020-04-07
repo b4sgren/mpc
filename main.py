@@ -20,7 +20,7 @@ if __name__=="__main__":
     T_eq = 0.0
     u_eq = np.array([F_eq, T_eq, T_eq, T_eq])
 
-    xr = np.array([0.0, 0.0, -10.0, 0.0, 0.0, 0.0, 0.0, 0.0, np.deg2rad(90), 0.0, 0.0, 0.0]) 
+    xr = np.array([5.0, 0.0, -10.0, 0.0, 0.0, 0.0, 0.0, 0.0, np.deg2rad(0), 0.0, 0.0, 0.0]) 
     cmd_idx = [0, 1, 2, 8]
     state = dynamics.state
 

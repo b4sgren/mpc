@@ -15,7 +15,7 @@ class Dynamics:
 
         self.state = np.array([params.pn0, params.pe0, params.pd0, params.vx0, params.vy0, params.vz0, params.phi0, params.theta0, params.psi0, params.p0, params.r0, params.psi0])
         self.e3 = np.array([0, 0, 1.0])
-        # self.Cd = 0.2 #Drag coefficient
+        self.Cd = 0.2 #Drag coefficient
         self.g = 9.81
         self.m = params.mass 
         self.J = np.diag([params.Jx, params.Jy, params.Jz])
@@ -49,12 +49,7 @@ class Dynamics:
         v = state[3:6]
         w = state[9:]
         p_dot = R_i_from_b @ v
-        v_dot = np.cross(v, w) + R_i_from_b.T @ (self.g * self.e3)  #Add a drag term? See mats code
-        # ud = w[2] * v[1] - w[1] * v[2] - self.g * np.sin(theta)
-        # vd = w[0] * v[2] - w[2] * v[0] + self.g * np.cos(theta) * np.sin(phi)
-        # wd = w[1] * v[0] - w[0] * v[1] + self.g * np.cos(theta) * np.cos(phi) - u[0]/self.m
-        # temp = np.array([ud, vd, wd])
-
+        v_dot = np.cross(v, w) + R_i_from_b.T @ (self.g * self.e3) - self.Cd * v  #Add a drag term?
 
         S = np.array([[1.0, sp * st / ct, cp * st / ct],
                       [0.0, cp, -sp],
@@ -62,10 +57,6 @@ class Dynamics:
         ang_dot = S @ w 
         w_dot = np.linalg.inv(self.J) @ np.cross(-w, (self.J @ w))
         Jx, Jy, Jz = self.J[0,0], self.J[1,1], self.J[2,2]
-        # pd = (Jy - Jz)/Jx * w[1]*w[2] + u[1]/Jx 
-        # qd = (Jz - Jx)/Jy * w[0] * w[2] + u[2]/Jy 
-        # rd = (Jx - Jy)/Jz * w[0] * w[1] + u[3]/Jz
-        # temp = np.array([pd, qd, rd])
 
         xdot[:3] = p_dot
         xdot[3:6] = v_dot

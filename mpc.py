@@ -2,8 +2,15 @@ import numpy as np
 import cvxpy as cp 
 import params
 
+'''
+TODO:
+1. Add ability to track trajectories instead of just waypoints
+2. Try augmenting tuning by adding penalty for inputs
+3. Implement non-linear model using pyoptsparse (different controller)
+'''
+
 class MPC:
-    def __init__(self, A, B, u_max, u_min, T=10): #Note that Q is diagonal and should only have values for states that I care to track (position and maybe heading)
+    def __init__(self, A, B, u_max, u_min, T=10): 
         self.A = A 
         self.B = B 
         self.u_max = u_max 
@@ -23,7 +30,7 @@ class MPC:
         constr = []
         phi_theta_max = np.array([np.pi/4, np.pi/4])
         for t in range(self.T):
-            cost += cp.quad_form(xr - x[:,t+1], self.Q) #+ cp.quad_form(u[:,t], self.R) #TODO: Update for different xr's in trajectory
+            cost += cp.quad_form(xr - x[:,t+1], self.Q) #+ cp.quad_form(u[:,t], self.R) 
             constr += [x[:,t+1] == self.A @ x[:,t] + self.B @ u[:,t]] 
             constr += [x[6:8, t+1] <= phi_theta_max, x[6:8, t+1] >= -phi_theta_max] #Max constraint on roll and pitch angles
             constr += [u[:,t] <= self.u_max,  u[:,t] >= self.u_min] #Constraint on the inputs
@@ -39,3 +46,7 @@ class MPC:
         else:
             print("Not optimal")
             return np.array([params.mass * 9.81, 0.0, 0.0, 0.0]) #Equilbrium
+
+# class NMPC:
+    # def __init__(self):
+        # debug = 1
