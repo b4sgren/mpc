@@ -14,11 +14,11 @@ if __name__=="__main__":
     controller =  MPC(A, B, params.u_max, params.u_min)
 
     t0 = params.t0
-    F_eq = 7.848 
+    F_eq = params.mass * 9.81
     T_eq = 0.0
     u_eq = np.array([F_eq, T_eq, T_eq, T_eq])
 
-    xr = np.array([10.0, 0.0, -10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) * 0.0
+    xr = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
     state = dynamics.state
 
     while(t0 < params.tf):
