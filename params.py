@@ -6,10 +6,6 @@ pd0 = -10.0
 vx0 = 0.0
 vy0 = 0.0
 vz0 = 0.0
-e0 = 1.0 # Do I want to use euler angles or Rotation matrix?
-e1 = 0.0
-e2 = 0.0
-e3 = 0.0
 p0 = 0.0
 q0 = 0.0
 r0 = 0.0
@@ -28,6 +24,9 @@ Jz = 2.0/5 * mc * r**2 + 4 * d**2 * mp
 
 u_max = np.array([9.81 * mass, 0.1, 0.1, 0.1])
 u_min = np.array([-9.81 * mass, -0.1, -0.1, -0.1])
+
+nu_max = np.array([9.81 * mass * 2, 0.1, 0.1, 0.1])
+nu_min = np.array([0, -0.1, -0.1, -0.1])
 
 dt = 0.02
 t0 = 0.0
