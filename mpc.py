@@ -2,6 +2,7 @@ import numpy as np
 import cvxpy as cp 
 import params
 import pyoptsparse #Will use SNOPT for the non-linear MPC
+from scipy.spatial.transform import Rotation
 
 '''
 TODO:
@@ -38,7 +39,6 @@ class MPC:
         constr += [x[:,0] == x0] # First state must be what is passed in
 
         problem = cp.Problem(cp.Minimize(cost), constr)
-        # problem.solve() #Will need to check if the soln is optimal
         problem.solve(solver=cp.ECOS)
 
         if problem.status == cp.OPTIMAL:
@@ -51,21 +51,96 @@ class MPC:
 class NMPC:
     def __init__(self, u_max, u_min, T=10):
         self.T = T 
-        self.u_max = u_max 
-        self.u_min = u_min 
-        self.Q = np.diag([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])
+        self.u_max = u_max.tolist()
+        self.u_min = u_min.tolist() 
+        self.Q = np.diag([10.0, 10.0, 2.0, 0, 0, 0, 10.0, 10.0, 50.0, 1.0, 1.0, 1.0]) #Weighting matrix for the states (x_ref - x_k)
         self.R = np.diag([0.1, 0.1, 0.1, 0.1])
-        self.u_eq = np.array([params.mass * 9.81, 0.0, 0.0, 0.0]) #This will always be my starting guess
+        self.u_eq = [params.mass * 9.81, 0.0, 0.0, 0.0] #This will always be my starting guess
+        self.rp_max = [np.pi/4, np.pi/4]
+        self.rp_min = [-np.pi/4, np.pi/4]
+        self.dt = params.dt
+
+        self.m = params.mass 
+        self.J = np.diag([params.Jx, params.Jy, params.Jz])
+        self.g = 9.81
+        self.e3 = np.array([0, 0, 1])
+        self.Cd = 0.2 #not sure that I will be using this. At least will change the value
     
-    def __call__(xdict):
-        debug = 1
+    def __call__(self, xdict):
+        u = xdict['xvars'].reshape((4, self.T), order='F')
+        x = []
+        x.append(self.x0.copy())
+        funcs = {}
+
+        #Calculate the states for the given inputs
+        for i in range(self.T):
+            x_dot = self.f(x[-1], u[:,i])
+            x_k = x[-1] + x_dot * self.dt
+            x.append(x_k)
+        
+        #Calculate the cost function
+        cost = 0
+        for xk in x:
+            diff = xk - self.x_ref
+            cost += diff @ self.Q @ diff
+        
+        for i in range(self.T):
+            uk = u[:,i]
+            # cost += uk @ self.R @ uk #Not using this while I get it working
+        funcs['obj'] = cost
+
+        # Make sure roll and pitch constraints are met
+        x = np.array(x)
+        rp = x[6:8, 1:].flatten(order='F')
+        funcs['rp'] = rp
+
+        return funcs, False
     
-    def equalityConstraints(self):
-        debug = 1
-    
-    def inequalityConstraints(self):
-        debug = 1
+    def f(self, state, u):
+        xdot = np.zeros(12, dtype=type(u[0]))
+        phi = state[6]
+        theta = state[7]
+        psi = state[8]
+        sp = np.sin(phi)
+        cp = np.cos(phi)
+        st = np.sin(theta)
+        ct = np.cos(theta)
+        cpsi = np.cos(psi)
+        spsi = np.sin(psi)
+
+        R_i_from_b = Rotation.from_euler("ZYX", [psi, theta, phi]).as_dcm()
+        forces = np.array([0, 0, 0, 0, 0, -u[0]/self.m, 0, 0, 0, u[1]/self.J[0,0], u[2]/self.J[1,1], u[3]/self.J[2,2]], dtype=type(u[0])) 
+
+        v = state[3:6]
+        w = state[9:]
+        p_dot = R_i_from_b @ v
+        v_dot = np.cross(v, w) + R_i_from_b.T @ (self.g * self.e3) - self.Cd * v  
+
+        S = np.array([[1.0, sp * st / ct, cp * st / ct],
+                      [0.0, cp, -sp],
+                      [0.0, sp / ct, cp / ct]])
+        ang_dot = S @ w 
+        w_dot = np.linalg.inv(self.J) @ np.cross(-w, (self.J @ w))
+
+        xdot[:3] = p_dot
+        xdot[3:6] = v_dot
+        xdot[6:9] = ang_dot 
+        xdot[9:] = w_dot 
+        xdot += forces
+
+        return xdot
 
     def calculateControl(self, xr, x0):
         self.x_ref = xr
-        debug = 1
+        self.x0 = x0 
+
+        optProb = pyoptsparse.Optimization('MPC', self)
+        optProb.addVarGroup('xvars', 4 * self.T, type='c', value=self.u_eq*self.T, lower=self.u_min * self.T, upper=self.u_max * self.T ) #List multiplication seems the best way to go
+        # optProb.addConGroup('x0', 12, lower=x0, upper=x0) #I don't know if this is needed. x0 is not a state that is changing #Initial state must be equal to x0
+        optProb.addConGroup('rp', 2 * (self.T+1), lower=self.rp_min * (self.T+1), upper=self.rp_max * (self.T+1)) #Check list multiplication
+        optProb.addObj('obj')
+
+        opt = pyoptsparse.SNOPT()
+        sol = opt(optProb, sens='CS')
+        u = sol.xStar['xvars'][:4]
+        return u
