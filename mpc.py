@@ -17,7 +17,7 @@ class MPC:
         self.B = B 
         self.u_max = u_max 
         self.u_min = u_min 
-        self.Q = np.diag([10.0, 10.0, 2.0, 1.0, 0.1, 0.1, 10.0, 10.0, 50.0, 1.0, 1.0, 1.0]) #Weighting matrix for the states (x_ref - x_k)
+        self.Q = np.diag([10.0, 10.0, 2.0, 1.0, 1.0, 0.1, 10.0, 10.0, 50.0, 1.0, 1.0, 2.0]) #Weighting matrix for the states (x_ref - x_k)
         self.R = np.diag([1e-1, 0.1, 0.1, 0.1])   #Weighting matrix for the inputs (penalize high control effort)
         self.T = T #Time horizon
 
