@@ -10,7 +10,7 @@ class QuadRotor_Viewer:
         self.window.setWindowTitle('Flight Simulator')
         self.window.setGeometry(0, 0, 750, 750)
         grid = gl.GLGridItem()
-        grid.scale(20, 20, 20)
+        grid.scale(10,10,10)
         self.window.addItem(grid) #Maybe do 3 orthogonal ones?
         self.window.setCameraPosition(distance=200)
         self.window.setBackgroundColor('k')
