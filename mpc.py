@@ -32,7 +32,7 @@ class MPC:
         constr = []
         phi_theta_max = np.array([np.pi/4, np.pi/4])
         for t in range(self.T):
-            cost += cp.quad_form(xr - x[:,t+1], self.Q) + cp.quad_form(u[:,t], self.R) 
+            cost += cp.quad_form(xr[:,t+1] - x[:,t+1], self.Q) + cp.quad_form(u[:,t], self.R) 
             constr += [x[:,t+1] == self.A @ x[:,t] + self.B @ u[:,t]] 
             constr += [x[6:8, t+1] <= phi_theta_max, x[6:8, t+1] >= -phi_theta_max] #Max constraint on roll and pitch angles
             constr += [u[:,t] <= self.u_max,  u[:,t] >= self.u_min] #Constraint on the inputs
@@ -68,7 +68,7 @@ class LNMPC: #This class will relinearize about the current state
         constr = []
         phi_theta_max = np.array([np.pi/4, np.pi/4])
         for t in range(self.T):
-            cost += cp.quad_form(xr - x[:,t+1], self.Q) + cp.quad_form(u[:,t], self.R) 
+            cost += cp.quad_form(xr[:,t+1] - x[:,t+1], self.Q) + cp.quad_form(u[:,t], self.R) 
             constr += [x[:,t+1] == self.A @ x[:,t] + self.B @ u[:,t]] 
             constr += [x[6:8, t+1] <= phi_theta_max, x[6:8, t+1] >= -phi_theta_max] #Max constraint on roll and pitch angles
             constr += [u[:,t] <= self.u_max,  u[:,t] >= self.u_min] #Constraint on the inputs
