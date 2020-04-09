@@ -12,7 +12,7 @@ class QuadRotor_Viewer:
         grid = gl.GLGridItem()
         grid.scale(10,10,10)
         self.window.addItem(grid) #Maybe do 3 orthogonal ones?
-        self.window.setCameraPosition(distance=200)
+        self.window.setCameraPosition(distance=50)
         self.window.setBackgroundColor('k')
         self.window.show()
         self.window.raise_()
@@ -41,7 +41,7 @@ class QuadRotor_Viewer:
                            [0.0, -2.0, 0.0],
                            [0.5, -1.5, 0.0]])
         
-        scale = 2.5
+        scale = 1.0
         points = scale * points
 
         red = np.array([1.0, 0.0, 0.0, 1])
