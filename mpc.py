@@ -4,14 +4,7 @@ import params
 import pyoptsparse #Will use SNOPT for the non-linear MPC
 from scipy.spatial.transform import Rotation
 
-'''
-TODO:
-1. Add ability to track trajectories instead of just waypoints
-2. Try augmenting tuning by adding penalty for inputs
-3. Implement non-linear model using pyoptsparse (different controller)
-'''
-
-class MPC:
+class MPC: #Vanilla MPC
     def __init__(self, A, B, u_max, u_min, T=10): 
         self.A = A 
         self.B = B 
@@ -53,7 +46,7 @@ class LNMPC: #This class will relinearize about the current state
         self.B = B 
         self.u_max = u_max 
         self.u_min = u_min 
-        self.Q = np.diag([10.0, 10.0, 2.0, 1.0, 1.0, 0.1, 10.0, 10.0, 50.0, 1.0, 1.0, 3.0]) #Weighting matrix for the states (x_ref - x_k)
+        self.Q = np.diag([10.0, 10.0, 2.0, 1.0, 1.0, 0.1, 10.0, 10.0, 50.0, 1.0, 1.0, 6.0]) #Weighting matrix for the states (x_ref - x_k)
         self.R = np.diag([1e-3, 1e-2, 1e-2, 1e-2])   #Weighting matrix for the inputs (penalize high control effort)
         self.T = T #Time horizon
 
@@ -83,7 +76,7 @@ class LNMPC: #This class will relinearize about the current state
             print("Not optimal")
             return np.array([params.mass * 9.81, 0.0, 0.0, 0.0]) #Equilbrium
 
-class NMPC:
+class NMPC: #Not working
     def __init__(self, u_max, u_min, T=10):
         self.T = T 
         self.u_max = u_max.tolist()

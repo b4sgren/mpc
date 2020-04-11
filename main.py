@@ -44,7 +44,9 @@ if __name__=="__main__":
                 A, B = dynamics.get_SS(state)
                 controller.A = A 
                 controller.B = B
-
+        if t0 >8.0:
+            # x_ref = np.array([-xr for i in range(params.T+1)]).T
+            debug = 1
         t = state[:3]
         ang = state[6:9]
         R_b_from_i = Rotation.from_euler('ZYX', [ang[2], ang[1], ang[0]]).as_dcm()
@@ -52,6 +54,7 @@ if __name__=="__main__":
         data_view.update(state, x_ref[cmd_idx, 0], params.t_plot) 
     
     viewer = QuadRotor_Viewer()
+    input('Setup screen recorder')
     for x in x_hist:
         trans = x[:3]
         ang = x[6:9]
